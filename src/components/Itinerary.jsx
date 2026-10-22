@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp, CalendarDays, Check, Clock3, MapPin, Plus, Route, Sparkles, Trash2 } from 'lucide-react';
+import { destinations } from '../data/destinations.js';
 
 export default function Itinerary({ tripDays, selectedDay, onSelectDay, days, totalDays, onRemove, onMove, onChangeDays }) {
   return (
@@ -24,7 +25,7 @@ export default function Itinerary({ tripDays, selectedDay, onSelectDay, days, to
       {tripDays[selectedDay]?.length ? (
         <ol className="timeline-list">
           {tripDays[selectedDay].map((destinationId, index) => {
-            const destination = window.__rotaDestinations?.find((item) => item.id === destinationId);
+            const destination = destinations.find((item) => item.id === destinationId);
             if (!destination) return null;
             return (
               <li className="timeline-item" key={`${destinationId}-${index}`}>

@@ -18,6 +18,53 @@ const country = (common, official, region, subregion, capital, population, area,
   subregion,
 });
 
+export const COUNTRY_RESPONSE_FIELDS = [
+  'names.common', 'names.official', 'codes.alpha_2', 'codes.alpha_3',
+  'flag.emoji', 'flag.url_svg', 'flag.url_png', 'capitals', 'population',
+  'region', 'subregion', 'area.kilometers', 'currencies', 'languages',
+  'borders', 'calling_codes', 'timezones', 'tlds',
+].join(',');
+
+export function normalizeApiCountry(item) {
+  const currencies = Array.isArray(item.currencies)
+    ? Object.fromEntries(item.currencies.map((entry) => [entry.code || entry.name, entry]))
+    : item.currencies || {};
+  const languages = Array.isArray(item.languages)
+    ? Object.fromEntries(item.languages.map((entry, index) => [entry.code || `language-${index}`, entry.name || entry.native_name || '']))
+    : item.languages || {};
+  const phoneCode = item.calling_codes?.[0] || '';
+  const phoneMatch = phoneCode.match(/^(\+?\d+)(.*)$/);
+
+  return {
+    name: {
+      common: item.names?.common || 'Desconhecido',
+      official: item.names?.official || item.names?.common || 'Desconhecido',
+    },
+    flags: { svg: item.flag?.url_svg || '', png: item.flag?.url_png || '' },
+    flagEmoji: item.flag?.emoji || '',
+    capital: (item.capitals || []).map((entry) => typeof entry === 'string' ? entry : entry.name).filter(Boolean),
+    population: item.population || 0,
+    region: item.region || '',
+    subregion: item.subregion || '',
+    area: item.area?.kilometers || 0,
+    currencies,
+    languages,
+    borders: item.borders || [],
+    idd: phoneMatch ? { root: phoneMatch[1], suffixes: [phoneMatch[2]] } : {},
+    timezones: item.timezones || [],
+    tld: item.tlds || [],
+    cca2: item.codes?.alpha_2 || '',
+    cca3: item.codes?.alpha_3 || '',
+  };
+}
+
+export function extractApiCountries(payload) {
+  if (Array.isArray(payload)) return payload.map(normalizeApiCountry);
+  if (Array.isArray(payload?.data?.objects)) return payload.data.objects.map(normalizeApiCountry);
+  if (Array.isArray(payload?.data)) return payload.data.map(normalizeApiCountry);
+  return [];
+}
+
 // Small built-in catalog keeps the API lesson usable when the browser has no network access.
 export const fallbackCountries = [
   country('Argentina', 'República Argentina', 'Americas', 'South America', 'Buenos Aires', 45808747, 2780400, 'ARS', 'Peso argentino', '$', 'Español', 'AR', '🇦🇷'),

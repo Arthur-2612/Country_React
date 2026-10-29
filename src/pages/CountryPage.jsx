@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Globe, Loader } from 'lucide-react';
+import { findFallbackCountry } from '../data/countries.js';
 
 export default function CountryPage() {
   const { nome } = useParams();
@@ -9,21 +10,26 @@ export default function CountryPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(nome)}?fullText=false`)
-      .then((r) => {
-        if (!r.ok) throw new Error('País não encontrado');
-        return r.json();
+    setCountry(null);
+    fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(nome)}?fullText=false`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error('País não encontrado');
+        return response.json();
       })
-      .then((data) => {
-        setCountry(data[0]);
-        setLoading(false);
-      })
+      .then((data) => setCountry(data[0]))
       .catch((err) => {
-        setError(err.message);
-        setLoading(false);
+        if (err.name === 'AbortError') return;
+        const fallback = findFallbackCountry(nome);
+        if (fallback) setCountry(fallback);
+        else setError('Não foi possível consultar a API e este país não está no catálogo offline.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
       });
+    return () => controller.abort();
   }, [nome]);
 
   return (
@@ -54,7 +60,13 @@ export default function CountryPage() {
       {country && (
         <div className="country-detail-page">
           <div className="cdp-flag-col">
-            <img src={country.flags?.svg} alt={country.name?.common} className="cdp-flag" />
+            {country.flags?.svg ? (
+              <img src={country.flags.svg} alt={country.name?.common} className="cdp-flag" />
+            ) : (
+              <div className="cdp-flag-emoji" role="img" aria-label={`Bandeira de ${country.name?.common}`}>
+                {country.flagEmoji || '🌍'}
+              </div>
+            )}
             <h1>{country.name?.common}</h1>
             <p className="cdp-official">{country.name?.official}</p>
           </div>

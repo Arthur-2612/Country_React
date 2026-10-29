@@ -1078,6 +1078,22 @@ input, select, textarea { font-family: inherit; }
   font-size: 11px;
   color: var(--text3);
 }
+.api-retry {
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+.api-retry:hover { border-color: var(--green); color: var(--green); }
+.api-offline-note {
+  margin: -14px 0 18px;
+  color: var(--yellow);
+  font-size: 12px;
+  line-height: 1.6;
+}
 
 .api-controls {
   display: flex;
@@ -1251,6 +1267,12 @@ input, select, textarea { font-family: inherit; }
   place-items: center;
   height: 100%;
   color: var(--text3);
+}
+.country-flag-emoji {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 64px;
 }
 .country-region-badge {
   position: absolute;
@@ -1584,6 +1606,18 @@ input, select, textarea { font-family: inherit; }
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   margin-bottom: 20px;
+}
+.cdp-flag-emoji {
+  display: grid;
+  width: 100%;
+  max-width: 360px;
+  min-height: 210px;
+  margin: 0 auto 20px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 112px;
 }
 .cdp-flag-col h1 { font-size: 32px; margin-bottom: 6px; }
 .cdp-official { color: var(--text3); font-size: 13px; }

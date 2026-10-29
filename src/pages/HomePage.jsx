@@ -81,7 +81,7 @@ export default function HomePage() {
               <span style={{ background: '#28ca42' }} />
             </div>
             <pre className="hp-code-block">{`import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes } from 'react-router-dom';
+  import { HashRouter, Routes } from 'react-router-dom';
 
 function App() {
   const [data, setData] = useState([]);
@@ -92,7 +92,7 @@ function App() {
       .then(setData);
   }, []);
 
-  return <Routes> ... </Routes>;
+  return <HashRouter><Routes> ... </Routes></HashRouter>;
 }`}</pre>
           </div>
           <div className="hp-badge-float hp-badge-1">

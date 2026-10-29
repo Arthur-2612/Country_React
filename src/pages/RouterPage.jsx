@@ -113,7 +113,7 @@ export default function RouterPage() {
         color="#d94f7a"
         title="React Router"
         subtitle="Como organizar páginas e navegação por URLs"
-        desc="React Router DOM v6: BrowserRouter, Routes, Route, Link, useParams e useLocation. Cada URL corresponde a um componente — sem recarregar a página."
+        desc="React Router: HashRouter, Routes, Route, Link, useParams e useLocation. O trecho # da URL mantém as rotas funcionando em hospedagem estática, sem exigir configuração no servidor."
       />
 
       <LocationInfo />
@@ -121,7 +121,7 @@ export default function RouterPage() {
       <div className="router-concepts">
         <div className="demo-card">
           <h3 className="demo-title">🗺️ Estrutura de rotas deste projeto</h3>
-          <pre className="router-structure">{`<BrowserRouter>
+            <pre className="router-structure">{`<HashRouter>
   <Routes>
     <Route path="/"          element={<HomePage />} />
     <Route path="/state"     element={<StatePage />} />
@@ -132,7 +132,7 @@ export default function RouterPage() {
     <Route path="/pais/:nome" element={<CountryPage />} />
     <Route path="*"          element={<NotFound />} />
   </Routes>
-</BrowserRouter>`}</pre>
+</HashRouter>`}</pre>
         </div>
 
         <div className="demo-card">

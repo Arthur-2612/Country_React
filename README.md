@@ -170,6 +170,8 @@ O `id` precisa ser único e estável: ele identifica o destino nos favoritos e n
 
 ## Build e publicação
 
+**Aplicação publicada:** [country-react-kohl.vercel.app](https://country-react-kohl.vercel.app/)
+
 O comando `npm run build` gera os arquivos estáticos em `dist/`. Publique o conteúdo dessa pasta em um serviço de hospedagem de sites estáticos, como GitHub Pages, Netlify ou Vercel. Como a aplicação usa rotas por âncora e não depende de backend, uma configuração simples de hospedagem estática é suficiente.
 
 ## Acessibilidade e responsividade

@@ -9,6 +9,7 @@ export default defineConfig({
         target: 'https://restcountries.com',
         changeOrigin: true,
         secure: true,
+        rewrite: (path) => path.replace(/^\/api\/restcountries/, ''),
       },
     },
   },

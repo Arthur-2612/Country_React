@@ -87,9 +87,10 @@ function App() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch('https://restcountries.com/v3.1/all')
+    // O proxy adiciona a chave no servidor, sem expô-la no navegador.
+    fetch('/api/countries?limit=100')
       .then(res => res.json())
-      .then(setData);
+      .then(payload => setData(payload.data.objects));
   }, []);
 
   return <HashRouter><Routes> ... </Routes></HashRouter>;

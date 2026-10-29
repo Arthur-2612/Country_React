@@ -14,7 +14,7 @@ export default function CountryPage() {
     setLoading(true);
     setError(null);
     setCountry(null);
-    fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(nome)}?fullText=false`, { signal: controller.signal })
+    fetch(`/api/restcountries/v3.1/name/${encodeURIComponent(nome)}?fullText=false`, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error('País não encontrado');
         return response.json();

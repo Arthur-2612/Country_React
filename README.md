@@ -62,6 +62,12 @@ npm run dev
 
 Abra no navegador o endereço local informado pelo Vite — normalmente `http://localhost:5173`.
 
+### Chave da API de países
+
+A página de países usa a API Rest Countries v5. Para usar sua conta, copie `.env.example` para `.env.local` e informe a chave em `REST_COUNTRIES_API_KEY`. A chave é lida pelo proxy do Vite e não é incluída no JavaScript enviado ao navegador. Sem uma chave local, o projeto usa a chave pública de demonstração do serviço, sujeita às limitações do modo demo.
+
+Como a chave compartilhada anteriormente foi exposta, revogue-a e use uma chave nova. Não envie a chave por chat nem a versione no Git. Reinicie o servidor após alterar `.env.local`.
+
 ### Outros comandos
 
 ```bash

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Globe, MapPin, Users, Languages, Coins, X, AlertTriangle, Loader, ChevronDown } from 'lucide-react';
+import { Search, Globe, MapPin, Users, Languages, Coins, X, Loader, ChevronDown } from 'lucide-react';
 import ConceptHeader from '../components/ConceptHeader.jsx';
+import { fallbackCountries } from '../data/countries.js';
 
 const REGIONS = ['Todos', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 
@@ -19,6 +20,8 @@ function CountryCard({ country, onClick }) {
       <div className="country-flag-wrap">
         {flag ? (
           <img src={flag} alt={`Bandeira de ${name}`} className="country-flag" loading="lazy" />
+        ) : country.flagEmoji ? (
+          <div className="country-flag-emoji" aria-label={`Bandeira de ${name}`}>{country.flagEmoji}</div>
         ) : (
           <div className="country-flag-placeholder"><Globe size={24} /></div>
         )}
@@ -93,28 +96,37 @@ export default function ApiPage() {
   const [sortBy, setSortBy] = useState('name');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [offline, setOffline] = useState(false);
   const [selected, setSelected] = useState(null);
   const [page, setPage] = useState(1);
   const PER_PAGE = 24;
 
-  // Fetch on mount
-  useEffect(() => {
+  // Keep the lesson usable if the public API is unavailable or blocked by the network.
+  const loadCountries = useCallback(async (signal) => {
     setLoading(true);
     setError(null);
-    fetch('https://restcountries.com/v3.1/all?fields=name,flags,capital,population,region,subregion,currencies,languages,borders,idd,timezones,tld,area')
-      .then((r) => {
-        if (!r.ok) throw new Error(`Erro ${r.status}`);
-        return r.json();
-      })
-      .then((data) => {
-        setAllCountries(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    try {
+      const response = await fetch('https://restcountries.com/v3.1/all?fields=name,flags,capital,population,region,subregion,currencies,languages,borders,idd,timezones,tld,area,cca2,cca3', { signal });
+      if (!response.ok) throw new Error(`Erro ${response.status}`);
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error('A resposta da API não tem o formato esperado.');
+      setAllCountries(data);
+      setOffline(false);
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      setAllCountries(fallbackCountries);
+      setOffline(true);
+      setError(err.message || 'Não foi possível acessar a API.');
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadCountries(controller.signal);
+    return () => controller.abort();
+  }, [loadCountries]);
 
   // Filter + sort
   useEffect(() => {
@@ -155,10 +167,12 @@ export default function ApiPage() {
       <div className="api-status-bar">
         <div className={`api-dot ${loading ? 'api-loading' : error ? 'api-error' : 'api-ok'}`} />
         <span>
-          {loading ? 'Buscando dados da API...' : error ? `Erro: ${error}` : `API RestCountries — ${allCountries.length} países carregados`}
+          {loading ? 'Buscando dados da API...' : offline ? `Modo demonstração — ${allCountries.length} países disponíveis sem conexão` : `API RestCountries — ${allCountries.length} países carregados`}
         </span>
+        {!loading && <button className="api-retry" onClick={() => loadCountries()}>{offline ? 'Tentar conexão novamente' : 'Atualizar dados'}</button>}
         <code className="api-url">https://restcountries.com/v3.1/all</code>
       </div>
+      {offline && <p className="api-offline-note" role="status">A API não respondeu ({error}). Exibindo dados locais de demonstração; tente novamente quando a conexão estiver disponível.</p>}
 
       {/* Controls */}
       <div className="api-controls">
@@ -191,7 +205,7 @@ export default function ApiPage() {
       </div>
 
       {/* Results count */}
-      {!loading && !error && (
+      {!loading && (
         <div className="api-results-bar">
           Mostrando <strong>{visible.length}</strong> de <strong>{filtered.length}</strong> países
           {search && <span> para "<em>{search}</em>"</span>}
@@ -207,16 +221,7 @@ export default function ApiPage() {
         </div>
       )}
 
-      {error && (
-        <div className="api-error-state">
-          <AlertTriangle size={32} />
-          <h3>Erro ao carregar</h3>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Tentar novamente</button>
-        </div>
-      )}
-
-      {!loading && !error && filtered.length === 0 && (
+      {!loading && filtered.length === 0 && (
         <div className="api-empty">
           <Globe size={32} />
           <p>Nenhum país encontrado para "<strong>{search}</strong>"</p>
@@ -224,7 +229,7 @@ export default function ApiPage() {
         </div>
       )}
 
-      {!loading && !error && (
+      {!loading && (
         <div className="country-grid">
           {visible.map((c) => (
             <CountryCard key={c.name?.common} country={c} onClick={setSelected} />

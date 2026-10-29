@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Globe, MapPin, Users, Languages, Coins, X, Loader, ChevronDown } from 'lucide-react';
 import ConceptHeader from '../components/ConceptHeader.jsx';
-import { fallbackCountries } from '../data/countries.js';
+import { COUNTRY_RESPONSE_FIELDS, extractApiCountries, fallbackCountries } from '../data/countries.js';
 
 const REGIONS = ['Todos', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 
@@ -97,6 +97,7 @@ export default function ApiPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [offline, setOffline] = useState(false);
+  const [demoApi, setDemoApi] = useState(false);
   const [selected, setSelected] = useState(null);
   const [page, setPage] = useState(1);
   const PER_PAGE = 24;
@@ -105,13 +106,38 @@ export default function ApiPage() {
   const loadCountries = useCallback(async (signal) => {
     setLoading(true);
     setError(null);
+    setDemoApi(false);
     try {
-      const response = await fetch('/api/restcountries/v3.1/all?fields=name,flags,capital,population,region,subregion,currencies,languages,borders,idd,timezones,tld,area,cca2,cca3', { signal });
-      if (!response.ok) throw new Error(`Erro ${response.status}`);
-      const data = await response.json();
-      if (!Array.isArray(data)) throw new Error('A resposta da API não tem o formato esperado.');
-      setAllCountries(data);
+      const countries = [];
+      let offset = 0;
+      let hasMore = true;
+      let usesDemoKey = false;
+
+      while (hasMore && offset < 1000) {
+        const query = new URLSearchParams({
+          limit: '100',
+          offset: String(offset),
+          response_fields: COUNTRY_RESPONSE_FIELDS,
+        });
+        const response = await fetch(`/api/countries?${query}`, { signal });
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.errors?.[0]?.message || `Erro ${response.status}`);
+        }
+
+        const pageCountries = extractApiCountries(payload);
+        usesDemoKey ||= Boolean(payload.data?._demo);
+        if (pageCountries.length === 0 && countries.length === 0) {
+          throw new Error(payload.errors?.[0]?.message || 'A API não retornou países.');
+        }
+        countries.push(...pageCountries);
+        hasMore = payload.data?.meta?.more ?? pageCountries.length === 100;
+        offset += 100;
+      }
+
+      setAllCountries(countries);
       setOffline(false);
+      setDemoApi(usesDemoKey);
     } catch (err) {
       if (err.name === 'AbortError') return;
       setAllCountries(fallbackCountries);
@@ -160,19 +186,26 @@ export default function ApiPage() {
         color="#3ac07a"
         title="Consumo de APIs"
         subtitle="Como buscar e apresentar dados de serviços externos"
-        desc="useEffect + fetch: busca os 195 países da API RestCountries. Filtro por região, busca em tempo real, ordenação e paginação — tudo com dados reais."
+        desc="Consumo da API Rest Countries v5 com autenticação no servidor, paginação, filtros, busca e ordenação dos países."
       />
 
       {/* API Status Bar */}
       <div className="api-status-bar">
         <div className={`api-dot ${loading ? 'api-loading' : error ? 'api-error' : 'api-ok'}`} />
         <span>
-          {loading ? 'Buscando dados da API...' : offline ? `Modo demonstração — ${allCountries.length} países disponíveis sem conexão` : `API RestCountries — ${allCountries.length} países carregados`}
+          {loading
+            ? 'Buscando dados da API...'
+            : offline
+              ? `Modo offline — ${allCountries.length} países locais disponíveis`
+              : demoApi
+                ? `API conectada em modo demo — ${allCountries.length} país de exemplo`
+                : `API RestCountries — ${allCountries.length} países carregados`}
         </span>
         {!loading && <button className="api-retry" onClick={() => loadCountries()}>{offline ? 'Tentar conexão novamente' : 'Atualizar dados'}</button>}
-        <code className="api-url">https://restcountries.com/v3.1/all</code>
+        <code className="api-url">api.restcountries.com/countries/v5</code>
       </div>
-      {offline && <p className="api-offline-note" role="status">A API não respondeu ({error}). Exibindo dados locais de demonstração; tente novamente quando a conexão estiver disponível.</p>}
+      {offline && <p className="api-offline-note" role="status">A API não respondeu ({error}). Exibindo dados locais; tente novamente quando a conexão estiver disponível.</p>}
+      {demoApi && <p className="api-offline-note" role="status">A conexão está funcionando com a chave pública de demonstração, que retorna apenas uma amostra. Configure sua chave em <strong>.env.local</strong> para carregar o catálogo completo.</p>}
 
       {/* Controls */}
       <div className="api-controls">
@@ -216,7 +249,7 @@ export default function ApiPage() {
       {loading && (
         <div className="api-loading-state">
           <div className="api-spinner"><Loader size={32} /></div>
-          <p>Carregando 195 países da API...</p>
+          <p>Carregando países da API...</p>
           <div className="loading-bar"><div className="loading-bar-fill" /></div>
         </div>
       )}

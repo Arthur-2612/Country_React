@@ -106,7 +106,7 @@ export default function ApiPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('https://restcountries.com/v3.1/all?fields=name,flags,capital,population,region,subregion,currencies,languages,borders,idd,timezones,tld,area,cca2,cca3', { signal });
+      const response = await fetch('/api/restcountries/v3.1/all?fields=name,flags,capital,population,region,subregion,currencies,languages,borders,idd,timezones,tld,area,cca2,cca3', { signal });
       if (!response.ok) throw new Error(`Erro ${response.status}`);
       const data = await response.json();
       if (!Array.isArray(data)) throw new Error('A resposta da API não tem o formato esperado.');

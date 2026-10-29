@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Globe, Loader } from 'lucide-react';
-import { findFallbackCountry } from '../data/countries.js';
+import { COUNTRY_RESPONSE_FIELDS, extractApiCountries, findFallbackCountry } from '../data/countries.js';
 
 export default function CountryPage() {
   const { nome } = useParams();
@@ -14,12 +14,20 @@ export default function CountryPage() {
     setLoading(true);
     setError(null);
     setCountry(null);
-    fetch(`/api/restcountries/v3.1/name/${encodeURIComponent(nome)}?fullText=false`, { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) throw new Error('País não encontrado');
-        return response.json();
+    const query = new URLSearchParams({ q: nome || '', limit: '10', response_fields: COUNTRY_RESPONSE_FIELDS });
+    fetch(`/api/countries/name?${query}`, { signal: controller.signal })
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.errors?.[0]?.message || 'País não encontrado');
+        const countries = extractApiCountries(payload);
+        const requestedName = decodeURIComponent(nome || '').trim().toLowerCase();
+        const match = countries.find((item) =>
+          item.name.common.toLowerCase() === requestedName || item.name.official.toLowerCase() === requestedName
+        ) || countries[0];
+        if (!match) throw new Error('País não encontrado');
+        return match;
       })
-      .then((data) => setCountry(data[0]))
+      .then(setCountry)
       .catch((err) => {
         if (err.name === 'AbortError') return;
         const fallback = findFallbackCountry(nome);

@@ -64,9 +64,9 @@ Abra no navegador o endereço local informado pelo Vite — normalmente `http://
 
 ### Chave da API de países
 
-A página de países usa a API Rest Countries v5. Para usar sua conta, copie `.env.example` para `.env.local` e informe a chave em `REST_COUNTRIES_API_KEY`. A chave é lida pelo proxy do Vite e não é incluída no JavaScript enviado ao navegador. Sem uma chave local, o projeto usa a chave pública de demonstração do serviço, sujeita às limitações do modo demo.
+A página de países usa a API Rest Countries v5. Para desenvolvimento local, copie `.env.example` para `.env.local` e informe a chave em `REST_COUNTRIES_API_KEY`. A chave é lida pelo proxy do Vite e não é incluída no JavaScript enviado ao navegador. Sem uma chave, o projeto usa a chave pública de demonstração do serviço, sujeita às limitações do modo demo.
 
-Como a chave compartilhada anteriormente foi exposta, revogue-a e use uma chave nova. Não envie a chave por chat nem a versione no Git. Reinicie o servidor após alterar `.env.local`.
+Na Vercel, configure `REST_COUNTRIES_API_KEY` em **Settings → Environment Variables** e faça um novo deploy. A função em `api/` envia a chave ao serviço no servidor; ela não fica exposta no navegador. Como a chave compartilhada anteriormente foi exposta, revogue-a e use uma chave nova. Não envie a chave por chat nem a versione no Git. Reinicie o servidor local após alterar `.env.local`.
 
 ### Outros comandos
 
